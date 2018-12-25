@@ -1,16 +1,9 @@
-﻿using System;
+﻿using Microsoft.Office.Core;
+using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
-using System.IO;
-using ICSharpCode.SharpZipLib.Zip;
-using ICSharpCode.SharpZipLib.Checksums;
 using System.Diagnostics;
-using Microsoft.Office.Core;
+using System.IO;
+using System.Windows.Forms;
 
 namespace WordToHTML
 {
@@ -22,7 +15,8 @@ namespace WordToHTML
             CheckForIllegalCrossThreadCalls = false;
         }
 
-        List<string> list = new List<string>();
+        private List<string> list = new List<string>();
+
         //获取指定目录下的所有文件以及文件夹
         private void GetAllFile(string strDir)
         {
@@ -36,27 +30,28 @@ namespace WordToHTML
                 {
                     temp = f[i].ToString().Substring(0, f[i].ToString().LastIndexOf("."));
                     //if (!list.Contains(temp))
-                        list.Add(f[i].ToString().Substring(0, f[i].ToString().LastIndexOf(".")));
+                    list.Add(f[i].ToString().Substring(0, f[i].ToString().LastIndexOf(".")));
                 }
             }
         }
+
         //将word转换为html
-        private void WordToHtmlFile(string WordFilePath,string strExtention)
+        private void WordToHtmlFile(string WordFilePath, string strExtention)
         {
             try
             {
                 Microsoft.Office.Interop.Word.Application wApp = new Microsoft.Office.Interop.Word.Application();
-                //指定原文件和目标文件 
+                //指定原文件和目标文件
                 object docPath = WordFilePath;
                 string htmlPath;
                 FileInfo finfo = new FileInfo(WordFilePath);
                 htmlPath = textBox2.Text.TrimEnd(new char[] { '\\' }) + "\\" + finfo.Name.Substring(0, finfo.Name.LastIndexOf(".")) + strExtention;
                 object Target = htmlPath;
-                //缺省参数 
+                //缺省参数
                 object Unknown = Type.Missing;
-                //只读方式打开 
+                //只读方式打开
                 object readOnly = true;
-                //打开doc文件 
+                //打开doc文件
                 Microsoft.Office.Interop.Word.Document document = wApp.Documents.Open(ref docPath, ref Unknown,
                 ref readOnly, ref Unknown, ref Unknown,
                 ref Unknown, ref Unknown, ref Unknown,
@@ -70,9 +65,11 @@ namespace WordToHTML
                     default:
                         format = Microsoft.Office.Interop.Word.WdSaveFormat.wdFormatFilteredHTML;
                         break;
+
                     case ".pdf":
                         format = Microsoft.Office.Interop.Word.WdSaveFormat.wdFormatPDF;
                         break;
+
                     case ".rtf":
                         format = Microsoft.Office.Interop.Word.WdSaveFormat.wdFormatRTF;
                         break;
@@ -84,6 +81,7 @@ namespace WordToHTML
                     default:
                         document.WebOptions.Encoding = MsoEncoding.msoEncodingSimplifiedChineseGBK;
                         break;
+
                     case "UTF8":
                         document.WebOptions.Encoding = MsoEncoding.msoEncodingUTF8;
                         break;
@@ -99,7 +97,7 @@ namespace WordToHTML
                 //ref Unknown, ref Unknown, ref Unknown,
                 //ref encoding, ref Unknown, ref Unknown,
                 //ref Unknown, ref Unknown, ref Unknown);
-                // 关闭文档和Word程序 
+                // 关闭文档和Word程序
                 document.Close(ref Unknown, ref Unknown, ref Unknown);
                 wApp.Quit(ref Unknown, ref Unknown, ref Unknown);
             }
@@ -113,17 +111,17 @@ namespace WordToHTML
         private void BatchConvert(string docDir)
         {
             FileInfo finfo;
-            //创建数组保存文件夹下的文件名 
+            //创建数组保存文件夹下的文件名
             string[] docFiles = Directory.GetFiles(docDir);
             for (int i = 0; i < docFiles.Length; i++)
             {
                 finfo = new FileInfo(docFiles[i]);
                 if (finfo.Extension == ".doc" || finfo.Extension == ".docx")
-                    WordToHtmlFile(docFiles[i],comboBox1.Text);
+                    WordToHtmlFile(docFiles[i], comboBox1.Text);
             }
         }
 
-        void timer1_Tick(object sender, EventArgs e)
+        private void timer1_Tick(object sender, EventArgs e)
         {
             toolStripStatusLabel1.Text = "当前时间：" + DateTime.Now;//实时显示当前系统时间
         }
@@ -150,7 +148,7 @@ namespace WordToHTML
         private void button1_Click(object sender, EventArgs e)
         {
             FolderBrowserDialog folder = new FolderBrowserDialog();
-            folder.SelectedPath="d:/wordhtml";
+            folder.SelectedPath = "d:/wordhtml";
             if (folder.ShowDialog() == DialogResult.OK)
             {
                 textBox2.Text = folder.SelectedPath;//记录选择路径
@@ -192,6 +190,7 @@ namespace WordToHTML
         }
 
         #region 压缩文件及文件夹
+
         ///// <summary>
         ///// 递归压缩文件夹方法
         ///// </summary>
@@ -212,7 +211,7 @@ namespace WordToHTML
 
         //        ZOPStream.PutNextEntry(entry);
         //        ZOPStream.Flush();
-        //        //先压缩文件，再递归压缩文件夹 
+        //        //先压缩文件，再递归压缩文件夹
         //        filenames = Directory.GetFiles(FolderToZip);
         //        foreach (string file in filenames)
         //        {
@@ -298,12 +297,14 @@ namespace WordToHTML
         //        return false;
         //    }
         //}
-        #endregion
+
+        #endregion 压缩文件及文件夹
 
         //批量压缩
         private void button3_Click(object sender, EventArgs e)
         {
             #region 拷贝到文件夹中批量压缩
+
             //DirectoryInfo dir = null;
             //System.Threading.ThreadPool.QueueUserWorkItem(//使用线程池，防止程序假死
             //             (P_temp) =>
@@ -347,9 +348,11 @@ namespace WordToHTML
             //                 MessageBox.Show("压缩文件成功……", "恭喜你", MessageBoxButtons.OK, MessageBoxIcon.Information);
             //                 button3.Enabled = true;
             //             });
-            #endregion
+
+            #endregion 拷贝到文件夹中批量压缩
 
             #region 调用批处理命令直接批量压缩
+
             Process proc = null;
             System.Threading.ThreadPool.QueueUserWorkItem(//使用线程池，防止程序假死
                          (P_temp) =>
@@ -363,7 +366,8 @@ namespace WordToHTML
                              proc.WaitForExit();
                              MessageBox.Show("压缩文件成功……", "恭喜你", MessageBoxButtons.OK, MessageBoxIcon.Information);
                          });
-            #endregion
+
+            #endregion 调用批处理命令直接批量压缩
         }
 
         private void Form1_Load(object sender, EventArgs e)
