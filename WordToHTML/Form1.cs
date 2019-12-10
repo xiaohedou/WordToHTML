@@ -18,14 +18,14 @@ namespace WordToHTML
         private List<string> list = new List<string>();
 
         //获取指定目录下的所有文件以及文件夹
-        private void GetAllFile(string strDir)
+        private void GetAllFile(string strDir,ListView lv)
         {
-            listView2.Items.Clear();
+            lv.Items.Clear();
             string[] f = Directory.GetFileSystemEntries(strDir);
             string temp = "";
             for (int i = 0; i < f.Length; i++)
             {
-                listView2.Items.Add(f[i].ToString());
+                lv.Items.Add(f[i].ToString());
                 if (f[i].ToString().LastIndexOf(".") > 0)
                 {
                     temp = f[i].ToString().Substring(0, f[i].ToString().LastIndexOf("."));
@@ -36,7 +36,7 @@ namespace WordToHTML
         }
 
         //将word转换为html
-        private void WordToHtmlFile(string WordFilePath, string strExtention)
+        private void WordToHtmlFile(string WordFilePath, string strExtention, TextBox textBox, ComboBox comboBox)
         {
             try
             {
@@ -45,7 +45,7 @@ namespace WordToHTML
                 object docPath = WordFilePath;
                 string htmlPath;
                 FileInfo finfo = new FileInfo(WordFilePath);
-                htmlPath = textBox2.Text.TrimEnd(new char[] { '\\' }) + "\\" + finfo.Name.Substring(0, finfo.Name.LastIndexOf(".")) + strExtention;
+                htmlPath = textBox.Text.TrimEnd(new char[] { '\\' }) + "\\" + finfo.Name.Substring(0, finfo.Name.LastIndexOf(".")) + strExtention;
                 object Target = htmlPath;
                 //缺省参数
                 object Unknown = Type.Missing;
@@ -74,8 +74,8 @@ namespace WordToHTML
                         format = Microsoft.Office.Interop.Word.WdSaveFormat.wdFormatRTF;
                         break;
                 }
-                object encoding = comboBox2.Text;
-                switch (comboBox2.Text)
+                object encoding = comboBox.Text;
+                switch (comboBox.Text)
                 {
                     case "GB2312":
                     default:
@@ -86,7 +86,7 @@ namespace WordToHTML
                         document.WebOptions.Encoding = MsoEncoding.msoEncodingUTF8;
                         break;
                 }
-                // 转换格式
+                //转换格式
                 document.SaveAs(ref Target, ref format,
                 ref Unknown, ref Unknown, ref Unknown,
                 ref Unknown, ref Unknown, ref Unknown,
@@ -101,9 +101,7 @@ namespace WordToHTML
                 document.Close(ref Unknown, ref Unknown, ref Unknown);
                 wApp.Quit(ref Unknown, ref Unknown, ref Unknown);
             }
-            catch (Exception e)
-            {
-                MessageBox.Show(e.Message);
+            catch { //MessageBox.Show(e.Message); 
             }
         }
 
@@ -117,7 +115,7 @@ namespace WordToHTML
             {
                 finfo = new FileInfo(docFiles[i]);
                 if (finfo.Extension == ".doc" || finfo.Extension == ".docx")
-                    WordToHtmlFile(docFiles[i], comboBox1.Text);
+                    WordToHtmlFile(docFiles[i], comboBox1.Text,textBox2,comboBox2);
             }
         }
 
@@ -152,7 +150,7 @@ namespace WordToHTML
             if (folder.ShowDialog() == DialogResult.OK)
             {
                 textBox2.Text = folder.SelectedPath;//记录选择路径
-                GetAllFile(textBox2.Text.Trim());
+                GetAllFile(textBox2.Text.Trim(),listView2);
             }
         }
 
@@ -166,7 +164,7 @@ namespace WordToHTML
                          {
                              button4.Enabled = false;
                              BatchConvert(textBox1.Text.Trim());
-                             GetAllFile(textBox2.Text.Trim());
+                             GetAllFile(textBox2.Text.Trim(),listView2);
                              MessageBox.Show("文档格式转换完成，快去使用吧！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
                              button4.Enabled = true;
                          });
@@ -372,8 +370,7 @@ namespace WordToHTML
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            comboBox1.SelectedIndex = 0;
-            comboBox2.SelectedIndex = 0;
+            comboBox1.SelectedIndex = comboBox2.SelectedIndex = comboBox3.SelectedIndex = comboBox4.SelectedIndex = 0;
         }
 
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
@@ -381,6 +378,65 @@ namespace WordToHTML
             if (comboBox1.SelectedIndex == 0)
             {
                 textBox2.Text = "d:/wordhtml";
+                DirectoryInfo dinfo = new DirectoryInfo("d:/wordhtml");
+                if (!dinfo.Exists)
+                    dinfo.Create();
+            }
+        }
+
+        private void button8_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog open = new OpenFileDialog();
+            open.Filter = "*.doc;*.docx|*.doc;*.docx";
+            open.Multiselect = false;
+            if (open.ShowDialog() == DialogResult.OK) 
+            {
+                listView3.Items.Add(open.FileName);
+            }
+        }
+
+        private void button7_Click(object sender, EventArgs e)
+        {
+            FolderBrowserDialog folder = new FolderBrowserDialog();
+            folder.SelectedPath = "d:/wordhtml";
+            if (folder.ShowDialog() == DialogResult.OK)
+            {
+                textBox3.Text = folder.SelectedPath;//记录选择路径
+                GetAllFile(textBox3.Text.Trim(),listView4);
+            }
+        }
+
+        private void button6_Click(object sender, EventArgs e)
+        {
+            if (listView3.Items.Count > 0 && textBox3.Text != "")
+            {
+                listView4.Items.Clear();//清空文件列表
+                System.Threading.ThreadPool.QueueUserWorkItem(//使用线程池
+                         (P_temp) =>
+                         {
+                             button6.Enabled = false;
+                             FileInfo finfo;
+                             for (int i = 0; i < listView3.Items.Count; i++)
+                             {
+                                 finfo = new FileInfo(listView3.Items[i].Text);
+                                 WordToHtmlFile(listView3.Items[i].Text, comboBox4.Text,textBox3,comboBox3);
+                             }
+                             GetAllFile(textBox3.Text.Trim(), listView4);
+                             MessageBox.Show("文档格式转换完成，快去使用吧！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                             button6.Enabled = true;
+                         });
+            }
+            else
+            {
+                MessageBox.Show("请确认存在要转换的Word文档列表和转换后的文件存放路径！", "温馨提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+
+        private void comboBox4_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (comboBox4.SelectedIndex == 0)
+            {
+                textBox3.Text = "d:/wordhtml";
                 DirectoryInfo dinfo = new DirectoryInfo("d:/wordhtml");
                 if (!dinfo.Exists)
                     dinfo.Create();
