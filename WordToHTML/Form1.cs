@@ -388,10 +388,13 @@ namespace WordToHTML
         {
             OpenFileDialog open = new OpenFileDialog();
             open.Filter = "*.doc;*.docx|*.doc;*.docx";
-            open.Multiselect = false;
-            if (open.ShowDialog() == DialogResult.OK) 
+            open.Multiselect = true;
+            if (open.ShowDialog() == DialogResult.OK)
             {
-                listView3.Items.Add(open.FileName);
+                foreach (string temp in open.FileNames)
+                {
+                        listView3.Items.Add(temp);
+                }
             }
         }
 
