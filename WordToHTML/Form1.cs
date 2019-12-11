@@ -445,5 +445,19 @@ namespace WordToHTML
                     dinfo.Create();
             }
         }
+
+        private void 删除ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (listView3.SelectedItems.Count > 0)
+                foreach (ListViewItem item in listView3.SelectedItems)
+                    listView3.Items.Remove(item);
+        }
+
+        private void 删除ToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            if (listView1.SelectedItems.Count > 0)
+                foreach (ListViewItem item in listView1.SelectedItems)
+                    listView1.Items.Remove(item);
+        }
     }
 }
